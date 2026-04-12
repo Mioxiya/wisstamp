@@ -35,6 +35,7 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
         <Link href="/" className="hover:text-foreground">首页</Link>
         <Link href="/categories" className="hover:text-foreground">全部分类</Link>
         <Link href="/ai-generate" className="hover:text-foreground">AI 生图</Link>
+        <Link href="/image-composer" className="hover:text-foreground">产品预览</Link>
       </nav>
     </div>
 
