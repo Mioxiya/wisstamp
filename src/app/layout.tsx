@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "芯火定制",
+  title: "绘物成器",
   description: "Wisstamp custom products",
 }
 
@@ -27,7 +27,7 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     <div className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
       <header className="mx-auto flex w-full max-w-7xl items-center justify-between gap-4 px-4 py-4">
         <Link href="/" className="text-xl font-semibold tracking-tight">
-          芯火定制
+          绘物成器
         </Link>
         <SearchInput/>
       </header>
@@ -43,7 +43,7 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
     <footer className="mt-12 border-t bg-muted/20">
       <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 text-sm md:grid-cols-3">
         <div>
-          <h3 className="mb-2 font-semibold">芯火定制</h3>
+          <h3 className="mb-2 font-semibold">绘物成器</h3>
           <p className="text-muted-foreground">Providing reliable tech since 2026</p>
           <div className="footer">
             <p>

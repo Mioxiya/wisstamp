@@ -1,4 +1,4 @@
-﻿import {Product} from "@/types/product"
+﻿import { Product } from "@/types/product"
 
 export interface ProductDetail extends Product {
   categoryId: string
@@ -22,25 +22,28 @@ export interface ProductCategoryData {
   products: Product[]
 }
 
-const bannerSet = ["/banner/banner01.png", "/banner/banner02.png", "/banner/banner03.png"]
-
-function makeVariants(basePrice: number, image: string, productId: string, longImages: string[]) {
-  const sizes = ["5cm", "7cm"]
-  const crafts = ["亮面", "磨砂"]
+function makeVariants(
+  productId: string,
+  image: string,
+  longImages: string[],
+  specA: { label: string; values: string[] },
+  specB: { label: string; values: string[] },
+  basePrice: number,
+  step = 10,
+) {
   const variants: ProductDetail["variants"] = []
 
-  sizes.forEach((size, sizeIndex) => {
-    crafts.forEach((craft, craftIndex) => {
-      const add = sizeIndex * 6 + craftIndex * 3
+  specA.values.forEach((firstValue, firstIndex) => {
+    specB.values.forEach((secondValue, secondIndex) => {
       variants.push({
         combination: {
-          尺寸: size,
-          工艺: craft,
+          [specA.label]: firstValue,
+          [specB.label]: secondValue,
         },
-        frontPrice: `¥${(basePrice + add).toFixed(1)}`,
+        frontPrice: `¥${(basePrice + firstIndex * step + (secondIndex * step) / 2).toFixed(0)}`,
         images: [image],
         longImages,
-        urlto: `/order/${productId}?size=${encodeURIComponent(size)}&craft=${encodeURIComponent(craft)}`,
+        urlto: `/order/${productId}?${encodeURIComponent(specA.label)}=${encodeURIComponent(firstValue)}&${encodeURIComponent(specB.label)}=${encodeURIComponent(secondValue)}`,
       })
     })
   })
@@ -48,229 +51,209 @@ function makeVariants(basePrice: number, image: string, productId: string, longI
   return variants
 }
 
+function createProduct(
+  id: string,
+  name: string,
+  price: string,
+  image: string,
+  categoryId: string,
+  categoryName: string,
+  description: string,
+  attributes: Record<string, string[]>,
+): ProductDetail {
+  const attributeEntries = Object.entries(attributes)
+  const [firstSpec, secondSpec] = attributeEntries
+  const numericPrice = Number(price.replace(/[^\d.]/g, ""))
+
+  return {
+    id,
+    name,
+    frontPrice: price,
+    images: [image],
+    categoryId,
+    categoryName,
+    description,
+    longImages: [image],
+    urlto: `/order/${id}`,
+    attributes,
+    variants:
+      firstSpec && secondSpec
+        ? makeVariants(
+            id,
+            image,
+            [image],
+            { label: firstSpec[0], values: firstSpec[1] },
+            { label: secondSpec[0], values: secondSpec[1] },
+            numericPrice,
+          )
+        : [],
+  }
+}
+
 export const mockProductDetails: ProductDetail[] = [
-  {
-    id: "p-001",
-    name: "亚克力双层钥匙扣",
-    frontPrice: "¥19.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/04/23/admin_1956/4e9a14a1-ed65-4fd2-b7cd-ae80cfbf7542.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "acrylic",
-    categoryName: "亚克力定制",
-    description: "支持单面/双面印刷，边缘透明抛光，适合应援和周边制作。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/04/23/admin_1956/4e9a14a1-ed65-4fd2-b7cd-ae80cfbf7542.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-001",
-    attributes: {
-      尺寸: ["5cm", "7cm"],
-      工艺: ["亮面", "磨砂"],
+  createProduct(
+    "p-001",
+    "十二生肖抱枕",
+    "¥59",
+    "/webimg/12生肖抱枕1.png",
+    "home-textile",
+    "家居布艺",
+    "柔软亲肤的生肖主题抱枕，适合文创礼赠与空间陈列。",
+    {
+      规格: ["单面印花", "双面印花"],
+      尺寸: ["45x45cm", "50x50cm"],
     },
-    variants: makeVariants(19.9, "https://img02.songzhaopian.cn/rz/2025/04/23/admin_1956/4e9a14a1-ed65-4fd2-b7cd-ae80cfbf7542.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1", "p-001", ["https://img02.songzhaopian.cn/rz/2025/04/23/admin_1956/4e9a14a1-ed65-4fd2-b7cd-ae80cfbf7542.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"]),
-  },
-  {
-    id: "p-002",
-    name: "亚克力立牌",
-    frontPrice: "¥29.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "acrylic",
-    categoryName: "亚克力定制",
-    description: "高透板材，UV 彩印，适合桌面陈列与活动周边。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-002",
-    attributes: {
-      尺寸: ["10cm", "15cm"],
-      底座: ["透明", "黑色"],
+  ),
+  createProduct(
+    "p-002",
+    "冬至礼盒",
+    "¥129",
+    "/webimg/冬至礼盒1.png",
+    "festival-gift",
+    "节庆礼盒",
+    "围绕节气主题设计的礼盒套装，适合企业伴手礼和节日活动。",
+    {
+      配置: ["标准款", "升级款"],
+      包装: ["天地盖盒", "手提礼盒"],
     },
-    variants: [
-      {
-        combination: {尺寸: "10cm", 底座: "透明"},
-        frontPrice: "¥29.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-002?size=10cm&base=clear",
-      },
-      {
-        combination: {尺寸: "10cm", 底座: "黑色"},
-        frontPrice: "¥32.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-002?size=10cm&base=black",
-      },
-      {
-        combination: {尺寸: "15cm", 底座: "透明"},
-        frontPrice: "¥39.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-002?size=15cm&base=clear",
-      },
-      {
-        combination: {尺寸: "15cm", 底座: "黑色"},
-        frontPrice: "¥42.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/07/16/admin_3585/b17f5def-0f70-4aa8-a67f-68ec5d404b8d.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-002?size=15cm&base=black",
-      },
-    ],
-  },
-  {
-    id: "p-003",
-    name: "徽章套装（圆形）",
-    frontPrice: "¥9.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/04/22/admin_1956/72e222ba-df33-4ff8-9937-dc4cf326ab53.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "badge",
-    categoryName: "徽章胸针",
-    description: "可做 58mm/75mm，支持覆膜，适合活动礼包。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/04/22/admin_1956/72e222ba-df33-4ff8-9937-dc4cf326ab53.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-003",
-    attributes: {
-      尺寸: ["58mm", "75mm"],
-      工艺: ["亮膜", "哑膜"],
+  ),
+  createProduct(
+    "p-003",
+    "文创包袋",
+    "¥49",
+    "/webimg/包袋.png",
+    "bag-travel",
+    "包袋出行",
+    "实用与展示兼顾的文创包袋，适合展会、活动和零售陈列。",
+    {
+      材质: ["帆布", "复合面料"],
+      规格: ["中号", "大号"],
     },
-    variants: makeVariants(9.9, "https://img02.songzhaopian.cn/rz/2025/04/22/admin_1956/72e222ba-df33-4ff8-9937-dc4cf326ab53.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1", "p-003", ["https://img02.songzhaopian.cn/rz/2025/04/22/admin_1956/72e222ba-df33-4ff8-9937-dc4cf326ab53.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"]),
-  },
-  {
-    id: "p-004",
-    name: "方形徽章",
-    frontPrice: "¥11.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/04/23/admin_3585/61fb5758-08ea-4750-ae3e-b874314ad93f.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "badge",
-    categoryName: "徽章胸针",
-    description: "方形视觉更醒目，适合角色半身图和文案。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/04/23/admin_3585/61fb5758-08ea-4750-ae3e-b874314ad93f.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-004",
-    attributes: {
-      尺寸: ["50mm", "65mm"],
-      工艺: ["亮面", "细闪"],
+  ),
+  createProduct(
+    "p-004",
+    "十二生肖摆件",
+    "¥79",
+    "/webimg/十二生肖2.png",
+    "festival-gift",
+    "节庆礼盒",
+    "系列化生肖主题摆件，适合新年礼赠与节庆陈设。",
+    {
+      工艺: ["彩绘", "烫金"],
+      套装: ["单款", "礼盒款"],
     },
-    variants: makeVariants(11.9, "https://img02.songzhaopian.cn/rz/2025/04/23/admin_3585/61fb5758-08ea-4750-ae3e-b874314ad93f.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1", "p-004", [bannerSet[0], bannerSet[2]]),
-  },
-  {
-    id: "p-005",
-    name: "PET 贴纸包",
-    frontPrice: "¥14.9",
-    images: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "sticker",
-    categoryName: "贴纸纸品",
-    description: "防水耐磨，适合手账、笔记本、电脑壳。",
-    longImages: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-005",
-    attributes: {
-      数量: ["20 张", "40 张"],
-      刀模: ["异形", "圆角"],
+  ),
+  createProduct(
+    "p-005",
+    "古诗丝巾",
+    "¥69",
+    "/webimg/古诗丝巾2.png",
+    "wearable-accessories",
+    "文创配饰",
+    "将诗词元素融入织物设计，适合博物馆文创和品牌联名。",
+    {
+      面料: ["仿真丝", "桑蚕丝"],
+      尺寸: ["小方巾", "大方巾"],
     },
-    variants: [
-      {
-        combination: {数量: "20 张", 刀模: "异形"},
-        frontPrice: "¥14.9",
-        images: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-005?count=20&cut=shape",
-      },
-      {
-        combination: {数量: "20 张", 刀模: "圆角"},
-        frontPrice: "¥13.9",
-        images: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-005?count=20&cut=round",
-      },
-      {
-        combination: {数量: "40 张", 刀模: "异形"},
-        frontPrice: "¥24.9",
-        images: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-005?count=40&cut=shape",
-      },
-      {
-        combination: {数量: "40 张", 刀模: "圆角"},
-        frontPrice: "¥23.9",
-        images: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/resource/tbp/2024/11/22/6a05f84b-e66d-43eb-881f-fa20b7c8e132.jpeg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-005?count=40&cut=round",
-      },
-    ],
-  },
-  {
-    id: "p-006",
-    name: "明信片套组",
-    frontPrice: "¥12.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "sticker",
-    categoryName: "贴纸纸品",
-    description: "300g 铜版纸，色彩饱满，支持双面设计。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-006",
-    attributes: {
-      纸张: ["铜版纸", "珠光纸"],
-      数量: ["10 张", "20 张"],
+  ),
+  createProduct(
+    "p-006",
+    "古诗书签",
+    "¥19",
+    "/webimg/古诗书签1.png",
+    "wearable-accessories",
+    "文创配饰",
+    "古典气质书签，适合阅读赠品、课程活动和文旅零售。",
+    {
+      材质: ["铜版纸", "金属蚀刻"],
+      包装: ["单张", "礼盒装"],
     },
-    variants: [
-      {
-        combination: {纸张: "铜版纸", 数量: "10 张"},
-        frontPrice: "¥12.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-006?paper=coat&count=10",
-      },
-      {
-        combination: {纸张: "珠光纸", 数量: "10 张"},
-        frontPrice: "¥14.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-006?paper=pearl&count=10",
-      },
-      {
-        combination: {纸张: "铜版纸", 数量: "20 张"},
-        frontPrice: "¥21.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-006?paper=coat&count=20",
-      },
-      {
-        combination: {纸张: "珠光纸", 数量: "20 张"},
-        frontPrice: "¥24.9",
-        images: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        longImages: ["https://img02.songzhaopian.cn/rz/2025/11/04/admin_1956/7fa57b99-d322-441a-857e-916d412001da.jpg?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-        urlto: "/order/p-006?paper=pearl&count=20",
-      },
-    ],
-  },
-  {
-    id: "p-007",
-    name: "拍立得卡片",
-    frontPrice: "¥15.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/05/15/admin_3585/ce1a1cb5-ed1a-49c6-a71b-6e67af7b898c.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "photo",
-    categoryName: "照片周边",
-    description: "复古边框，适合打卡、应援和赠礼。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/05/15/admin_3585/ce1a1cb5-ed1a-49c6-a71b-6e67af7b898c.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-007",
-    attributes: {
-      尺寸: ["mini", "wide"],
-      工艺: ["哑光", "光面"],
+  ),
+  createProduct(
+    "p-007",
+    "帆布袋",
+    "¥39",
+    "/webimg/帆布袋.png",
+    "bag-travel",
+    "包袋出行",
+    "大容量帆布袋，适合品牌周边、通勤和展会派发。",
+    {
+      克重: ["12安", "16安"],
+      颜色: ["原色", "米白"],
     },
-    variants: makeVariants(15.9, "https://img02.songzhaopian.cn/rz/2025/05/15/admin_3585/ce1a1cb5-ed1a-49c6-a71b-6e67af7b898c.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1", "p-007", ["https://img02.songzhaopian.cn/rz/2025/05/15/admin_3585/ce1a1cb5-ed1a-49c6-a71b-6e67af7b898c.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"]),
-  },
-  {
-    id: "p-008",
-    name: "照片挂件",
-    frontPrice: "¥18.9",
-    images: ["https://img02.songzhaopian.cn/rz/2025/11/27/admin_10/5001c7b0-23c4-4840-b474-a8f65e8dccac.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    categoryId: "photo",
-    categoryName: "照片周边",
-    description: "轻量耐摔，赠送挂链，可选双面图。",
-    longImages: ["https://img02.songzhaopian.cn/rz/2025/11/27/admin_10/5001c7b0-23c4-4840-b474-a8f65e8dccac.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"],
-    urlto: "/order/p-008",
-    attributes: {
-      尺寸: ["5cm", "7cm"],
-      工艺: ["透明", "白边"],
+  ),
+  createProduct(
+    "p-008",
+    "江苏特色油纸伞",
+    "¥99",
+    "/webimg/江苏特色油纸伞1.png",
+    "festival-gift",
+    "节庆礼盒",
+    "地域文化特色鲜明，适合景区文创与节庆陈列使用。",
+    {
+      尺寸: ["常规款", "展示款"],
+      工艺: ["手绘", "印花"],
     },
-    variants: makeVariants(18.9, "https://img02.songzhaopian.cn/rz/2025/11/27/admin_10/5001c7b0-23c4-4840-b474-a8f65e8dccac.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1", "p-008", ["https://img02.songzhaopian.cn/rz/2025/11/27/admin_10/5001c7b0-23c4-4840-b474-a8f65e8dccac.png?x-oss-process=image/auto-orient,1/format,webp/resize,s_600/interlace,1"]),
-  },
+  ),
+  createProduct(
+    "p-009",
+    "花卉门帘",
+    "¥89",
+    "/webimg/花卉门帘1.png",
+    "home-textile",
+    "家居布艺",
+    "花卉图案门帘，适合空间软装、节日布置和活动场景搭建。",
+    {
+      材质: ["棉麻", "涤纶"],
+      尺寸: ["标准款", "加长款"],
+    },
+  ),
+  createProduct(
+    "p-010",
+    "花卉香囊",
+    "¥29",
+    "/webimg/花卉香囊1.png",
+    "wearable-accessories",
+    "文创配饰",
+    "轻巧雅致的花卉香囊，适合礼赠、活动周边与节日售卖。",
+    {
+      香型: ["艾草", "桂花"],
+      规格: ["单个", "双只装"],
+    },
+  ),
+  createProduct(
+    "p-011",
+    "西湖断桥徽章",
+    "¥25",
+    "/webimg/西湖断桥徽章1.png",
+    "wearable-accessories",
+    "文创配饰",
+    "以地标景观为主题的纪念徽章，适合景区周边和活动纪念。",
+    {
+      工艺: ["烤漆", "滴胶"],
+      包装: ["裸装", "卡纸装"],
+    },
+  ),
+  createProduct(
+    "p-012",
+    "文创鱼竿套装",
+    "¥159",
+    "/webimg/鱼竿.png",
+    "bag-travel",
+    "包袋出行",
+    "兼顾实用与文化设计表达的主题鱼竿套装，适合特色礼品开发。",
+    {
+      长度: ["2.1m", "2.7m"],
+      套装: ["基础版", "豪华版"],
+    },
+  ),
 ]
 
 export const mockCategories: ProductCategoryData[] = [
-  {id: "acrylic", name: "亚克力定制", products: mockProductDetails.filter((p) => p.categoryId === "acrylic")},
-  {id: "badge", name: "徽章胸针", products: mockProductDetails.filter((p) => p.categoryId === "badge")},
-  {id: "sticker", name: "贴纸纸品", products: mockProductDetails.filter((p) => p.categoryId === "sticker")},
-  {id: "photo", name: "照片周边", products: mockProductDetails.filter((p) => p.categoryId === "photo")},
+  { id: "festival-gift", name: "节庆礼盒", products: mockProductDetails.filter((p) => p.categoryId === "festival-gift") },
+  { id: "wearable-accessories", name: "文创配饰", products: mockProductDetails.filter((p) => p.categoryId === "wearable-accessories") },
+  { id: "home-textile", name: "家居布艺", products: mockProductDetails.filter((p) => p.categoryId === "home-textile") },
+  { id: "bag-travel", name: "包袋出行", products: mockProductDetails.filter((p) => p.categoryId === "bag-travel") },
 ]
 
 export const getAllCategories = () => mockCategories
@@ -288,4 +271,3 @@ export const searchProducts = (query: string) => {
     return haystack.includes(normalized)
   })
 }
-
