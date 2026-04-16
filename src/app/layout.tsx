@@ -48,11 +48,11 @@ export default function RootLayout({children}: Readonly<{ children: React.ReactN
           <p className="text-muted-foreground">Providing reliable tech since 2026</p>
           <div className="footer">
             <p>
-              <a target="_blank" href=" ">
+              <a target="_blank" href="https://beian.miit.gov.cn/">
                 浙ICP备2026006425号-1
               </a>
             </p>
-            <p>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '4px', margin: 0 }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               < img width="16px" src="https://beian.mps.gov.cn/web/assets/logo01.6189a29f.png" alt=""/>
               <a href="https://beian.mps.gov.cn/#/query/webSearch?code=33070302100832"
